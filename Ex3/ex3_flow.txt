@@ -1,0 +1,101 @@
+Program usage:
+
+	- Connect to Digital Sim and Keyboard of Mars.
+	- When user type in, value is displayed in keyboard interface.
+
+	- At the same time, user's sequence of input is compared to a target_string( default: "bo mon ky thuat may tinh"), and the number of matching characters is displayed on the 7-leds.
+
+	- When user presses Enter, the input sequence is refreshed.
+
+
+
+
+Program flows
+Main:
+
+	- Main loop through indefinitely, waiting for interupt
+	ex: 
+	while true:
+		thread.sleep(200)
+
+	- Two types of interupts might occur:
+		+ Counter interupt: run main for 30 clock cycles
+		+ Keyboard interupt: when user press 1 key
+
+	- When interupt happens, jump to ktext section(customized interupt handler)
+
+
+
+Interupt handler:
+
+	- Check for interupt cause in $13 with different mask,
+	if satisfy, jump to that interupt handler. If none satisfy, resume program
+
+	ex:
+		counter_mask = 0b_0101
+		keyboard_mask = 0b_0011
+
+		cause = 0b_0101
+
+		is_Counter = counter_mask and cause == cause
+		is_Keyboard = keyboard_mask and cause != cause
+
+
+
+
+	- Counter interupt handler:
+		+ Check if display value = last display value ( avoid flickering)
+		+ If true:
+			* Translate value to 7-led code for display
+			* Display number
+			* Update last display value
+
+		ex:
+			case1:
+				display_value = 0, last_display_value = 0 => no re-display
+
+			case2:
+				display_value = 1, last_display_value = 0 => re-display
+
+			(display_value = 10 => left_7_led: 1, right_7_led: 0)
+
+				display_code_left = convert_to_7_led(display_value /10)		
+				display_code_right = convert_to_7_led(display_code_right %10)
+
+				display_left( display_code_left)
+				display_code_right( display_code_right)
+
+				last_display_value = display_value
+
+
+
+
+	- Keyboard interupt handler:
+		+ Get value of key pressed
+		+ If value = '\n' ---> reset procedure,
+			else ----> add procedure
+
+
+		+ Reset procedure: 
+			* Set display_value, last_display_value to original value
+			* Set tracking_string to null ( tracking_string keep all input key in order)
+		
+
+		+ Add procedure:
+			* If tracking_string already exceeds maximum length,
+				or tracking_string longer than target_string   
+				----> do nothing, no longer need tracking current process
+
+			* Else ----> add new character to tracking_string,
+				check input value against value of target_string,
+				update display_value to number of correct characters,
+
+			ex: 
+				if length(tracking_string) > maximum_length 
+						or length( tracking_string) > length( target_string):
+					return
+				else:
+					tracking_string += new_character
+					display_value = count_correct(target_string, tracking_string)
+
+
