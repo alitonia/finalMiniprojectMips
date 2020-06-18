@@ -1,0 +1,16 @@
+Steps:
+
+- function check: 
+	+ compare between target string and input string
+	+ input: string
+	+ output: number of correct 
+
+- function display:
+	+ show number on 7 led
+	+ input: number
+	output: none
+
+-  function interupt:
+	+ interupt after an amount of time and call others things
+	+ input: time
+	+ output
