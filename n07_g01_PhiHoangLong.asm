@@ -1,5 +1,5 @@
-.include "miniprojectUtils.asm"
-.include "P7_Resource.asm"
+.include "n07_g01_PhiHoangLong_Utils.asm"
+.include "n07_g01_PhiHoangLong_Resource.asm"
 
 .data
 	promptInput:		.asciiz "Enter a MIPS (basic) instruction: "
@@ -18,7 +18,12 @@ main:
 	bnez $a1, emptyInput
 	la $a0, inputString
 	trim_space_reg($a0)
-	split_by_literal_separator($a0, ' ')  #-> opcode in $a2
+	split_by_literal_separator($a0, ' ')  					# get opcode -> a2
+	# start finding opcode 
+	# if found, then check its argument validation
+	#		if arguments are valid -> start finding cycles
+	#		else -> invalid
+	# if not found -> invalid
 	opcode_in_ee:
 		la $a1, ee
 		check_substring_appearance($a1, $a2)
@@ -250,8 +255,9 @@ main:
 		valid_u16($a3)
 		beqz $v0, not_found
 	
+	# start finding opcode cycle
 	find_cycle:
-	
+
 	opcode_three_cycle_1:
 		la $a1, three_cycle_1
 		check_substring_appearance($a1, $a2)
