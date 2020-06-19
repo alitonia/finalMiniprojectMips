@@ -1,5 +1,5 @@
 #Filename:		n07_g01_PhiHoangLong_Resource.asm
-#Purpose:		define global variables and functions kept as data structure and algorithm for mips basic instructions, miniproject 7
+#Purpose:		define global variables and functions kept as data and validation checking for mips basic instructions, miniproject 7
 #Author:			Phi Hoang Long		20184288
 
 .data
@@ -14,7 +14,7 @@
 	# e			even float register ($f0, $f2, ..., $f30)
 	# f			float register ($f0, $f1, ..., $f31)
 	# i			int register ($zero, $at, .... , $ra, $0, $1, ... , $31)
-	# 8 			Coprocessor 0 ($8, $12, $13, $14, $t0, $t4, $t5, $t6)
+	# 8 			Coprocessor 0 ($8, $12, $13, $14)
 	# l			label
 	# s16		signed 16-bit integer
 	# u16		unsigned 16-bit integer
@@ -63,10 +63,10 @@
 	odd_short_int_reg:		.asciiz "$1 $3 $5 $7 $9 $11 $13 $15 $17 $19 $21 $23 $25 $27 $29 $31"
 	even_float_reg:		.asciiz "$f0 $f2 $f4 $f6 $f8 $f10 $f12 $f14 $f16 $f18 $f20 $f22 $f24 $f26 $f28 $f30"
 	odd_float_reg:			.asciiz "$f1 $f3 $f5 $f7 $f9 $f11 $f13 $f15 $f17 $f19 $f21 $f23 $f25 $f27 $f29 $f31"
-	copro0:				.asciiz "$8 $12 $13 $14 $t0 $t4 $t5 $t6"
+	copro0:				.asciiz "$8 $12 $13 $14"
 	
 	#Classify opcode based on the number of cycles
-	#Split opcode lists into multiple parts to avoid long string
+	#Split opcode cycle lists into multiple parts to avoid long string
 	three_cycle_1:			.asciiz "bc1f bc1t beq bgez bgezal bgtz blez bltz bltzal bne break eret j jal jalr jr tne tnei"
 	three_cycle_2:			.asciiz "mfc0 mfc1 mfhi mflo mov.d mov.s movf movf.d movf.s movn movn.d movn.s tltu"
 	three_cycle_3:			.asciiz "mthi mtlo mul mul.d mul.s mult multu neg.d neg.s teq teqi tge tgei tgeiu tgeu tlt tlti tltiu"

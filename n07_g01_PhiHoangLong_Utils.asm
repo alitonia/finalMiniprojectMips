@@ -458,6 +458,10 @@ done:
 		beq $t0, 10, check_first_char
 		j loop						# else continue check char
 	check_first_char:
+		sge $t2, $t1, 56
+		sle $t3, $t1, 57
+		and $t2, $t2, $t3
+		beq $t2, 1, check_if_zero_exist	# if t1 == 8 or t1 == 9, check zero
 		sge $t2, $t1, 65
 		sle $t3, $t1, 70
 		and $t2, $t2, $t3				
