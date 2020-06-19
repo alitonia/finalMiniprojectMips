@@ -19,6 +19,7 @@ main:
 	la $a0, inputString
 	trim_space_reg($a0)
 	split_by_literal_separator($a0, ' ')  					# get opcode -> a2
+												# list of operands -> a3
 	# start finding opcode 
 	# if found, then check its argument validation
 	#		if arguments are valid -> start finding cycles

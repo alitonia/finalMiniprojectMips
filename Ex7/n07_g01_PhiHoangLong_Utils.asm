@@ -257,7 +257,12 @@ done:
 		pop_reg($t0)
 .end_macro
 
-.macro convert_num_hex(%register_string)  # ----> v0
+#Subprogram:		convert_num_hex
+#Purpose:		convert a valid string of 16-bit hexadecimal to decimal
+#Input:			%register_string
+#Output:			$v0
+
+.macro convert_num_hex(%register_string)
 	push_reg($t0) 	# i
 	push_reg($t1)	# char value	
 	push_reg($a0)	# address origin
@@ -388,9 +393,8 @@ done:
 #Subprogram:		is_hexa
 #Purpose:		check if a string stored in a register is a valid hexadecimal or not
 #Input:			%register_string
-#Output:			$v1 = 0 if invalid
-#					  1 if valid
-#				$v0 = hexa part
+#Output:			$v1 = 0 , $v0 = 0 if invalid
+#					  1 , $v0 = num(decimal) if valid 
 
 .macro is_hexa(%register_string)
 .data
@@ -465,11 +469,11 @@ done:
 		sge $t2, $t1, 65
 		sle $t3, $t1, 70
 		and $t2, $t2, $t3				
-		beq $t2, 1, check_if_zero_exist	# if A < t1 < F, check zero
+		beq $t2, 1, check_if_zero_exist	# if A <= t1 <= F, check zero
 		sge $t2, $t1, 97
 		sle $t3, $t1, 102
 		and $t2, $t2, $t3
-		beq $t2, 1, check_if_zero_exist	# if a < t1 < f, check zero
+		beq $t2, 1, check_if_zero_exist	# if a <= t1 <= f, check zero
 		j loop
 	check_if_zero_exist:
 		beq $t4, 0, loop				# if there is no zero
@@ -496,8 +500,8 @@ done:
 #Subprogram:		is_num
 #Purpose:		check if a string stored in a register is a valid integer or not
 #Input:			%register_string
-#Output:			$v0 = 0 if invalid
-#					  1 if valid
+#Output:			$v1 = 0, $v0 = 0 if invalid
+#					  1, $v0 = num(decimal) if valid
 
 .macro is_num(%register_string)
 	push_reg($t0) 	# i

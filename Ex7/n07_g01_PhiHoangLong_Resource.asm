@@ -3,8 +3,8 @@
 #Author:			Phi Hoang Long		20184288
 
 .data
-	# Classify every opcode based on its arguments, 
-	# for each group create a check_validation function to check its arguments' validation.
+	# Classify every opcode based on its operands, 
+	# for each group create a check_validation function to check its operands' validation.
 	# Ex: 
 	# cee		condition flag, even float register, even float register
 	# es16_i		even float register, signed_16_bit_integer(int register)
