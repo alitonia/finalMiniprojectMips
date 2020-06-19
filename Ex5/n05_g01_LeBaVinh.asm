@@ -43,7 +43,7 @@ main:
 # t4 is status code to check error input
 #	0 means that previous scan is operator except '(' and ')'
 #	1 means that previous scan is operand
-# t5 stores scanning charcter in Infix string
+# t5 stores scanning charcter in Infix string and Postfix stack
 # t6 stores operator loaded from Operator stack
 # t7 stores address holding character in Infix string or Postfix stack
 # t8 stores address holding top operand or operator in Postfix stack
