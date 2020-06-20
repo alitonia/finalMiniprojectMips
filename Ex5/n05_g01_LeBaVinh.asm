@@ -61,7 +61,6 @@ init:
 	li $t2, -1
 	li $s3, 0
 	li $s4, 0
-	li $t3, 0
 	li $t4, 0
 	li $s5, 0
 	li $s6, 0
