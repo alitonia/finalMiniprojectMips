@@ -43,7 +43,7 @@ main:
 # t4 is status code to check error input
 #	0 means that previous scan is operator except '(' and ')'
 #	1 means that previous scan is operand
-# t5 stores scanning charcter in Infix string and Postfix stack
+# t5 stores scanning character in Infix string and Postfix stack
 # t6 stores operator loaded from Operator stack
 # t7 stores address holding character in Infix string or Postfix stack
 # t8 stores address holding top operand or operator in Postfix stack
@@ -53,11 +53,15 @@ init:
 	la $s0, Infix
 	la $s1, Postfix
 	la $s2, Operator
+	sw $zero, 0($s2)
+	sw $zero, 4($s2)
 	addi $t9, $s2, -1
 	li $t0, -1
 	li $t1, -1
 	li $t2, -1
 	li $s3, 0
+	li $s4, 0
+	li $t3, 0
 	li $t4, 0
 	li $s5, 0
 	li $s6, 0
@@ -105,13 +109,13 @@ printPostfix:
 	beqz $t8, errorInput
 	addi $t8, $t8, 1
 	li $t4, '\n'
-	addi $t4, $t4, 100			# Decode '\n'
+	addi $t4, $t4, 100			# Encode '\n'
 	sb $t4, 0($t8)
 	while:
 	addi $t1, $t1, 1
 	add $t7, $s1, $t1
 	lbu $t5, 0($t7)
-	addi $t5, $t5, -100			# Encode character
+	addi $t5, $t5, -100			# Decode character
 	beq $t5, '\n', calculateResult
 	# Print
 	addi $t5, $t5, 100			# Return value of operator or number
@@ -122,7 +126,7 @@ printPostfix:
 	j printSpace
 	printOp:
 	li $v0, 11
-	addi $t5, $t5, -100			# Encode operator
+	addi $t5, $t5, -100			# Decode operator
 	move $a0, $t5
 	syscall	
 	printSpace:
@@ -139,7 +143,7 @@ printResult:
 	la $a0, prompt_result
 	syscall
 	li $v0, 1
-	lb $a0, 0($s2)
+	lw $a0, 0($s2)
 	syscall
 	li $v0, 11
 	li $a0, '\n'
@@ -152,7 +156,7 @@ printResult:
 calculateResult:
 	la $s2, Result
 	addi $s1, $s1, -1
-	addi $s2, $s2, -1
+	addi $s2, $s2, -4
 	for:
 	addi $s1, $s1, 1
 	lbu $t5, 0($s1)
@@ -161,18 +165,17 @@ calculateResult:
 	addi $t5, $t5, 100
 	bgt $t5, 99, doOp
 	j pushResult
-	j for
 	
 pushResult:
-	addi $s2, $s2, 1
-	sb $t5, 0($s2)
+	addi $s2, $s2, 4
+	sw $t5, 0($s2)
 	j for
 
 popResult:
-	lb $s4, 0($s2)
-	addi $s2, $s2, -1
-	lb $s3, 0($s2)
-	addi $s2, $s2, -1
+	lw $s4, 0($s2)
+	addi $s2, $s2, -4
+	lw $s3, 0($s2)
+	addi $s2, $s2, -4
 	jr $ra
 	
 #----------------------------------
@@ -250,7 +253,7 @@ pushPostfix:
 
 pushOperator:
 	addi $t9, $t9, 1
-	addi $t5, $t5, 100			# Decode operator
+	addi $t5, $t5, 100			# Encode operator
 	sb $t5, 0($t9)
 	move $t4, $zero
 	j scanInfix
