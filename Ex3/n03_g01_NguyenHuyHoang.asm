@@ -1,4 +1,4 @@
-.include "small_lib.asm"
+.include "n03_g01_NguyenHuyHoang_small_lib.asm"
 
 
 ##### define control block
