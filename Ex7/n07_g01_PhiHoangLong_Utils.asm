@@ -384,7 +384,6 @@ done:
 		j check_char	
 	end_of_str:
 	end_of_get_length:
-		addi $v0, $v0, 0					#correct length to $v0
 		pop_reg($t2)
 		pop_reg($t1)
 		pop_reg($a0)
@@ -653,7 +652,6 @@ done:
 	found_pos:
 		move $v0, $t1
 	end_of_find_pos:
-		addi $v0, $v0, 0
 		pop_reg($a0)
 		pop_reg($t3)
 		pop_reg($t2)
@@ -662,7 +660,7 @@ done:
 .end_macro
 
 #Subprogram:		split_by_literal_separator
-#Purpose:		split a given string into 2 substrings, using separator character
+#Purpose:		split a given string into 2 substrings, using separator character, remove redundant spaces if possible
 #Input:			%string_reg - register contains string
 #				%char - separator character
 #Output:			$a2 - contains the first string split by this function
@@ -698,6 +696,8 @@ done:
 		la $a2, substring				# load first half split string to a2
 		addi $t2, $t2, 1				# get the next position
 	 	add $a3, $a0, $t2				# load second half split string to a3
+	 	trim_space_reg($a2)
+	 	trim_space_reg($a3)
 	 	j done 
 	 return:							# string cannot be split 
 	 	move $a2, $a0				# keep a2 = origin string
