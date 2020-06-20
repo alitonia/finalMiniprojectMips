@@ -3,10 +3,9 @@
 
 ##### define control block
 
-# Time Counter
 .eqv MASK_CAUSE_COUNTER 0x00000400
-.eqv MASK_CAUSE_KEYMATRIX 0x00000800
-.eqv COUNTER 0xFFFF0013
+.eqv MASK_CAUSE_KEYBOARD 0x0000034
+
 
 
 #Keyboard 
@@ -16,7 +15,6 @@
 .eqv DISPLAY_CODE 0xFFFF000C
 .eqv DISPLAY_READY 0xFFFF0008
 
-.eqv MASK_CAUSE_KEYBOARD 0x0000034
 
 
 # 7-led thingy
@@ -24,6 +22,8 @@
 .eqv SEVENSEG_RIGHT 0xFFFF0010
 
 
+# Time Counter
+.eqv COUNTER 0xFFFF0013
 
 
 .data
