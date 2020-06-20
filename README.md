@@ -8,7 +8,7 @@ Install [Mars](https://courses.missouristate.edu/kenvollmar/mars/)
 
 Clone this repository with git
 ```git
-git clone https://github.com/alitonia/finalMiniprojectMips
+git clone https://github.com/drag-pi/finalMiniprojectMips
 ```
 
 ## Usage
