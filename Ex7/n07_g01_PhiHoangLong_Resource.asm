@@ -1,4 +1,26 @@
+#Filename:		n07_g01_PhiHoangLong_Resource.asm
+#Purpose:		define global variables and functions kept as data and validation checking for mips basic instructions, miniproject 7
+#Author:			Phi Hoang Long		20184288
+
 .data
+	# Classify every opcode based on its operands, 
+	# for each group create a check_validation function to check its operands' validation.
+	# Ex: 
+	# cee		condition flag, even float register, even float register
+	# es16_i		even float register, signed_16_bit_integer(int register)
+	# ...
+	# Abbreviation argument list:
+	# c			condition flag (0-7)
+	# e			even float register ($f0, $f2, ..., $f30)
+	# f			float register ($f0, $f1, ..., $f31)
+	# i			int register ($zero, $at, .... , $ra, $0, $1, ... , $31)
+	# 8 			Coprocessor 0 ($8, $12, $13, $14)
+	# l			label
+	# s16		signed 16-bit integer
+	# u16		unsigned 16-bit integer
+	# u5			unsigned 5-bit integer
+	# none		no argument
+	
 	cee:		.asciiz "c.eq.d c.le.d c.lt.d"
 	cff:		.asciiz "c.eq.s c.le.s c.lt.s"
 	cl:		.asciiz "bc1f bc1t"
@@ -9,6 +31,7 @@
 	ef:		.asciiz "cvt.d.s cvt.d.w"
 	es16_i:	.asciiz "ldc1 sdc1"
 	fe:		.asciiz "ceil.w.d cvt.w.d cvt.s.d floor.w.d round.w.d trunc.w.d"
+	#Split ff into 2 parts to avoid long string
 	ff_1:		.asciiz "abs.s c.eq.s c.le.s c.lt.s ceil.w.s cvt.s.w cvt.w.s"
 	ff_2:		.asciiz "floor.w.s mov.s movf.s movt.s neg.s round.w.s sqrt.s trunc.w.s"
 	ffc:		.asciiz "movf.s movt.s"
@@ -33,14 +56,17 @@
 	none:	.asciiz "break eret nop syscall"
 	u16:		.asciiz "break"
 	
+	# Classify registers based on type
 	even_norm_int_reg:		.asciiz "$zero $v0 $a0 $a2 $t0 $t2 $t4 $t6 $s0 $s2 $s4 $s6 $t8 $k0 $gp $fp"
 	odd_norm_int_reg:		.asciiz "$at $v1 $a1 $a3 $t1 $t3 $t5 $t7 $s1 $s3 $s5 $s7 $t9 $k1 $sp $ra"
 	even_short_int_reg:		.asciiz "$0 $2 $4 $6 $8 $10 $12 $14 $16 $18 $20 $22 $24 $26 $28 $30"
 	odd_short_int_reg:		.asciiz "$1 $3 $5 $7 $9 $11 $13 $15 $17 $19 $21 $23 $25 $27 $29 $31"
 	even_float_reg:		.asciiz "$f0 $f2 $f4 $f6 $f8 $f10 $f12 $f14 $f16 $f18 $f20 $f22 $f24 $f26 $f28 $f30"
 	odd_float_reg:			.asciiz "$f1 $f3 $f5 $f7 $f9 $f11 $f13 $f15 $f17 $f19 $f21 $f23 $f25 $f27 $f29 $f31"
-	copro0:				.asciiz "$8 $12 $13 $14 $t0 $t4 $t5 $t6"
+	copro0:				.asciiz "$8 $12 $13 $14"
 	
+	#Classify opcode based on the number of cycles
+	#Split opcode cycle lists into multiple parts to avoid long string
 	three_cycle_1:			.asciiz "bc1f bc1t beq bgez bgezal bgtz blez bltz bltzal bne break eret j jal jalr jr tne tnei"
 	three_cycle_2:			.asciiz "mfc0 mfc1 mfhi mflo mov.d mov.s movf movf.d movf.s movn movn.d movn.s tltu"
 	three_cycle_3:			.asciiz "mthi mtlo mul mul.d mul.s mult multu neg.d neg.s teq teqi tge tgei tgeiu tgeu tlt tlti tltiu"
@@ -60,25 +86,21 @@
 	push_reg($a3)
 	move $t0, %string_of_operands
 	la $t2, even_float_reg
-	#check if the first operand is even_float_reg
-	trim_space_reg($t0)
-	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
-	check_substring_appearance($t2, $a2)
-	beqz $v0, invalid
+	#check if the first operand is even_float_reg						
+	split_by_literal_separator($t0, ',')					# get the first operand -> a2 
+	check_substring_appearance($t2, $a2)				# check appearance in even_float_reg -> v0 = 1 if found, 0 if not found
+	beqz $v0, invalid								# if not found -> invalid
 	#check if the second operand is even_float_reg
-	trim_space_reg($a3)
-	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
-	check_substring_appearance($t2, $a2)
-	beqz $v0, invalid
+	split_by_literal_separator($a3, ',')					# get the second operand -> a2
+	check_substring_appearance($t2, $a2)				# check appearance in even_float_reg -> v0 = 1 if found, 0 if not found
+	beqz $v0, invalid								# if not found -> invalid
 	#check if the third operand exists
-	get_string_reg_length($a3)
+	get_string_reg_length($a3)						# if the third operand exists -> v0 = length > 0 -> invalid
 	bnez $v0, invalid
-	addi $v0, $zero, 1
+	addi $v0, $zero, 1								# if valid -> v0 = 1
 	j done
 	invalid:
-		addi $v0, $zero, 0
+		addi $v0, $zero, 0							# else v0 = 0
 	done:
 		pop_reg($a3)
 		pop_reg($a2)
@@ -95,34 +117,28 @@
 	move $t0, %string_of_operands
 	la $t2, even_float_reg
 	#check if the first operand is even_float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the second operand is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the third operand is int_reg
-	trim_space_reg($a3)
-	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
+	split_by_literal_separator($a3, ',')					# get the third operand -> a2
 	la $t2, even_norm_int_reg
-	check_substring_appearance($t2, $a2)
-	move $t0, $v0
+	check_substring_appearance($t2, $a2)				# check appearance in even_norm_int_reg -> v0 = 1 if found, 0 if not found
+	move $t0, $v0									# t0 = v0
 	la $t2, odd_norm_int_reg
-	check_substring_appearance($t2, $a2)
-	add $t0, $t0, $v0
+	check_substring_appearance($t2, $a2)				# check appearance in odd_norm_int_reg -> v0 = 1 if found, 0 if not found
+	add $t0, $t0, $v0								# t0 += v0
 	la $t2, even_short_int_reg
-	check_substring_appearance($t2, $a2)
-	add $t0, $t0, $v0
+	check_substring_appearance($t2, $a2)				# check appearance in even_short_int_reg -> v0 = 1 if found, 0 if not found
+	add $t0, $t0, $v0								# t0 += v0
 	la $t2, odd_short_int_reg
-	check_substring_appearance($t2, $a2)
-	add $t0, $t0, $v0
-	beqz $t0, invalid
+	check_substring_appearance($t2, $a2)				# check appearance in odd_short_int_reg -> v0 = 1 if found, 0 if not found
+	add $t0, $t0, $v0								# t0 += v0
+	beqz $t0, invalid								# if t0 = 0 (not found in every possible register lists) -> invalid
 	#check if the fourth operand exists
 	get_string_reg_length($a3)
 	bnez $v0, invalid
@@ -146,21 +162,15 @@
 	move $t0, %string_of_operands
 	la $t2, even_float_reg
 	#check if the first operand is even_float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the second operand is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the third operad is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the fourth operand exists
@@ -188,18 +198,14 @@
 	la $t2, even_float_reg
 	la $t3, odd_float_reg
 	#check if the first operand is float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the third operand exists
@@ -228,18 +234,14 @@
 	la $t2, even_float_reg
 	la $t3, odd_float_reg
 	#check if the first operand is float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
@@ -271,27 +273,21 @@
 	la $t2, even_float_reg
 	la $t3, odd_float_reg
 	#check if the first operand is float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
@@ -323,27 +319,21 @@
 	la $t2, even_float_reg
 	la $t3, odd_float_reg
 	#check if the first operand is float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -384,9 +374,7 @@
 	la $t2, even_float_reg
 	la $t3, odd_float_reg
 	#check if the first operand is float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
@@ -394,23 +382,19 @@
 	move $v0, $t0
 	beqz $v0, invalid
 	#check if the second operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	move $v0, $t0
 	beqz $v0, invalid
-	#check if the third operand is cond_flag
-	trim_space_reg($a3)
-	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
-	is_num($a2)
-	beqz $v1, invalid
-	check_int_reg_range($v0, 0, 7)
-	beqz $v0, invalid
+	#check if the third operand is cond_flag							
+	split_by_literal_separator($a3, ',')					# get the third operand -> a2
+	is_num($a2)									# check if a2 could be a valid integer -> if true, v1 = 1, v0 = parseInt(a2); if false, v1 = 0, v2 = 0
+	beqz $v1, invalid								# if v1 = 0 -> invalid
+	check_int_reg_range($v0, 0, 7)					# check if 0 <= v0 <= 7 -> v0 = 1 if true, 0 if false
+	beqz $v0, invalid								# if v0 = 0 -> invalid
 	#check if the fourth operand exists
 	get_string_reg_length($a3)
 	bnez $v0, invalid
@@ -438,15 +422,11 @@
 	la $a0, even_float_reg
 	la $a1, odd_float_reg
 	#check if the first operand is even_float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($a0, $a2)
 	beqz $v0, invalid
 	#check if the second operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($a0, $a2)
 	move $t0, $v0
 	check_substring_appearance($a1, $a2)
@@ -475,9 +455,7 @@
 	push_reg($a3)
 	move $t0, %string_of_operands
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -513,9 +491,7 @@
 	push_reg($a3)
 	move $t0, %string_of_operands
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -531,9 +507,7 @@
 	beqz $t0, invalid
 	#check if the second operand is coproc0
 	la $t2, copro0
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the third operand exists
@@ -558,9 +532,7 @@
 	push_reg($a3)
 	move $t0, %string_of_operands
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -576,9 +548,7 @@
 	beqz $t0, invalid
 	#check if the second operand is float_reg
 	la $t2, even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	la $t2, odd_float_reg
@@ -614,9 +584,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -627,9 +595,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -671,9 +637,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -684,9 +648,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -697,9 +659,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -730,8 +690,9 @@
 .macro valid_none(%string_of_operands)
 	push_reg($t0)
 	move $t0, %string_of_operands
+	trim_space_reg($t0)
 	#check if operand exists
-	get_string_reg_length($t0)
+	get_string_reg_length($t0)						# if operand exists -> length > 0 -> invalid
 	bnez $v0, invalid
 	addi $v0, $zero, 1
 	j done
@@ -751,21 +712,15 @@
 	move $t0, %string_of_operands
 	la $t2, even_float_reg
 	#check if the first operand is even_float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the second operand is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the third operad is cond_flag
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beqz $v1, invalid
 	check_int_reg_range($v0, 0, 7)
@@ -794,9 +749,7 @@
 	push_reg($v1)
 	move $t0, %string_of_operands
 	#check if the first operand is float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_float_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -806,14 +759,12 @@
 	move $v0, $t0
 	beqz $v0, invalid
 	#check if the second operand is signed_16_bit_int
-	trim_space_reg($a3)
-	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
-	is_num($a2)
-	beq $v1, 1, check_num
-	is_hexa($a2)
-	beq $v1, 1, check_num
-	j invalid
+	split_by_literal_separator($a3, ',')						# get the second operand -> a2
+	is_num($a2)										# check if a2 could be a valid integer -> if true, v1 = 1, v0 = parseInt(a2); if false, v1 = 0, v2 = 0
+	beq $v1, 1, check_num								# if v1 = 1 (true) -> step to check value range
+	is_hexa($a2)										# if v1 = 0 (false) -> check if a2 could be a valid hexadecimal -> if true, v1 = 1, v0 = parseInt(a2); if false, v1 = 0, v2 = 0
+	beq $v1, 1, check_num								# if v1 = 1 (true) -> step to check value range
+	j invalid											# if v1 = 0 (false) -> invalid
 	check_num:
 		check_int_reg_range($v0, -32768, 32767)
 		beqz $v0, invalid
@@ -848,9 +799,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -862,9 +811,7 @@
 	move $v0, $t0
 	beqz $v0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -876,9 +823,7 @@
 	move $v0, $t0
 	beqz $v0, invalid
 	#check if the third operand is cond_flag
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beqz $v1, invalid
 	check_int_reg_range($v0, 0, 7)
@@ -910,9 +855,7 @@
 	push_reg($v1)
 	move $t0, %string_of_operands
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -927,9 +870,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is signed_16_bit_int
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -962,9 +903,7 @@
 	push_reg($v1)
 	move $t0, %string_of_operands
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -979,9 +918,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is unsigned_16_bit_int
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -1021,9 +958,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1034,9 +969,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1047,9 +980,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is signed_16_bit_int
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -1092,9 +1023,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1105,9 +1034,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1118,9 +1045,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is unsigned_5_bit_int
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -1163,9 +1088,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1176,9 +1099,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1189,9 +1110,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is unsigned_16_bit_int
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -1228,23 +1147,17 @@
 	move $t0, %string_of_operands
 	la $t2, even_float_reg
 	#check if the first operand is cond_flag
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beqz $v1, invalid
 	check_int_reg_range($v0, 0, 7)
 	beqz $v0, invalid
 	#check if the second operand is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the third operad is even_float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the fourth operand exists
@@ -1274,26 +1187,20 @@
 	la $t2, even_float_reg
 	la $t3, odd_float_reg
 	#check if the first operand is cond_flag
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beqz $v1, invalid
 	check_int_reg_range($v0, 0, 7)
 	beqz $v0, invalid
 	#check if the second operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is float_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
 	check_substring_appearance($t3, $a2)
@@ -1323,9 +1230,7 @@
 	push_reg($v1)
 	move $t0, %string_of_operands
 	#check if the first operand is unsigned_16_bit_int
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -1357,29 +1262,23 @@
 	push_reg($v1)
 	move $t0, %string_of_operands
 	#check if the first operand is even_float_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_float_reg
 	check_substring_appearance($t2, $a2)
 	beqz $v0, invalid
 	#check if the second operand is signed_16_bit_int(int_reg) Ex: -100($t1)
 	#check offset
-	trim_space_reg($a3)
-	split_by_literal_separator($a3, '(')
-	trim_space_reg($a2)
-	is_num($a2)
-	beq $v1, 1, check_num
-	is_hexa($a2)
-	beq $v1, 1, check_num
-	j invalid
+	split_by_literal_separator($a3, '(')							# get offset -> $a2
+	is_num($a2)											# check if a2 could be a valid integer -> if true, v1 = 1, v0 = parseInt(a2); if false, v1 = 0, v2 = 0
+	beq $v1, 1, check_num									# if v1 = 1 (true) -> step to check value range
+	is_hexa($a2)											# if v1 = 0 (false) -> check if a2 could be a valid hexadecimal -> if true, v1 = 1, v0 = parseInt(a2); if false, v1 = 0, v2 = 0
+	beq $v1, 1, check_num									# if v1 = 1 (true) -> step to check value range
+	j invalid												# if v1 = 0 (false) -> invalid
 	check_num:
 		check_int_reg_range($v0, -32768, 32767)
 		beqz $v0, invalid
-	#check register
-	trim_space_reg($a3)
-	split_by_literal_separator($a3, ')')
-	trim_space_reg($a2)
+	#check register	
+	split_by_literal_separator($a3, ')')							# get register part in bracket
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -1424,9 +1323,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1438,9 +1335,7 @@
 	beqz $t0, invalid
 	#check if the second operand is signed_16_bit_int(int_reg) Ex: -100($t1)
 	#check offset
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, '(')
-	trim_space_reg($a2)
 	is_num($a2)
 	beq $v1, 1, check_num
 	is_hexa($a2)
@@ -1450,9 +1345,7 @@
 		check_int_reg_range($v0, -32768, 32767)
 		beqz $v0, invalid
 	#check register
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ')')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1488,9 +1381,7 @@
 	push_reg($a3)
 	move $t0, %string_of_operands
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	la $t2, even_norm_int_reg
 	check_substring_appearance($t2, $a2)
 	move $t0, $v0
@@ -1505,9 +1396,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is a valid label
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_label($a2)
 	beqz $v0, invalid
 	#check if the third operand exists
@@ -1539,9 +1428,7 @@
 	la $t6, even_short_int_reg
 	la $t7, odd_short_int_reg
 	#check if the first operand is int_reg
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1552,9 +1439,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the second operand is int_reg
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_substring_appearance($t4, $a2)
 	move $t0, $v0
 	check_substring_appearance($t5, $a2)
@@ -1565,9 +1450,7 @@
 	add $t0, $t0, $v0
 	beqz $t0, invalid
 	#check if the third operand is a valid label
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_label($a2)
 	beqz $v0, invalid
 	#check if the fourth operand exists
@@ -1596,17 +1479,13 @@
 	move $t0, %string_of_operands
 	la $t2, even_float_reg
 	#check if the first operand is cond_flag
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	is_num($a2)
 	beqz $v1, invalid
 	check_int_reg_range($v0, 0, 7)
 	beqz $v0, invalid
 	#check if the second operand is a valid label
-	trim_space_reg($a3)
 	split_by_literal_separator($a3, ',')
-	trim_space_reg($a2)
 	check_label($a2)
 	beqz $v0, invalid
 	#check if the third operand exists
@@ -1630,9 +1509,7 @@
 	push_reg($a3)
 	move $t0, %string_of_operands
 	#check if the first operand is a valid label
-	trim_space_reg($t0)
 	split_by_literal_separator($t0, ',')
-	trim_space_reg($a2)
 	check_label($a2)
 	beqz $v0, invalid
 	#check if the second operand exists

@@ -1,4 +1,4 @@
-#Filename:		miniprojectUtils.asm
+#Filename:		n07_g01_PhiHoangLong_Utils.asm
 #Purpose:		define utilities which will be used in the miniproject 7
 #Author:			Phi Hoang Long		20184288
 #
@@ -257,7 +257,12 @@ done:
 		pop_reg($t0)
 .end_macro
 
-.macro convert_num_hex(%register_string)  # ----> v0
+#Subprogram:		convert_num_hex
+#Purpose:		convert a valid string of 16-bit hexadecimal to decimal
+#Input:			%register_string
+#Output:			$v0
+
+.macro convert_num_hex(%register_string)
 	push_reg($t0) 	# i
 	push_reg($t1)	# char value	
 	push_reg($a0)	# address origin
@@ -269,95 +274,93 @@ done:
 	push_reg($ra)
 
 	# a0 = %register_string
-	push_reg(%register_string)
-	pop_reg($a0)
-	get_string_reg_length(%register_string) # ---> v0
-
+	move $a0, %register_string
+	get_string_reg_length($a0) # ---> v0
 	li $t0, 0  # i = 0
 	li $t2, 0  # sum = 0
 	li $v1,0   # first num = 0
-__convert_num_hex_loop__:
-	beq $t0, $v0, __convert_num_hex_end_loop__
-	add $a1, $a0, $t0
-	lb $t1, 0($a1)  # t1 = a[i]
-	# check for negative case
-	seq $t3, $t0, 0
-	seq $t4, $v0, 8
-	and $t3, $t3, $t4
-	beq $t3, 1, __is_num_might_neg_case
-__convert_num_hex_okay__:
-	jal __convert_num_hex_convert__
-__convert_num_hex_sum__:
-	mul $t2, $t2, 16
-	add $t2, $t2, $t1
-__convert_num_hex_end_iter__:
-	addi $t0, $t0, 1
-	j __convert_num_hex_loop__
-__convert_num_hex_end_loop__:
-	move $v0,$t2
-	# first_num * 10^7 - rest
-	j __convert_num_hex_end__
-__is_num_might_neg_case:
-	# 48-57
-	sgt $t3, $t1, 47
-	slti $t4, $t1, 58
-	and $t3, $t3, $t4
-	beq $t3, 1, __convert_num_hex_okay__
-	jal __convert_num_hex_convert__
-	addi $t2, $t1, 0 # first num -> v1
-	li $t1,8
-	sub $t2, $t2, 8
-	sub $t2, $t1, $t2
-	# t2 = -(2^3 - rest)
-	mul $t2, $t2, -1
-	j __convert_num_hex_end_iter__
-__convert_num_hex_convert__:
-	 #65 70
-	 #97 102
-	 beq $t1, 65, __convert_num_hex_10_case__
-	 beq $t1, 66, __convert_num_hex_11_case__
-	 beq $t1, 67, __convert_num_hex_12_case__
-	 beq $t1, 68, __convert_num_hex_13_case__
-	 beq $t1, 69, __convert_num_hex_14_case__
-	 beq $t1, 70, __convert_num_hex_15_case__
+	__convert_num_hex_loop__:
+		beq $t0, $v0, __convert_num_hex_end_loop__
+		add $a1, $a0, $t0
+		lb $t1, 0($a1)  # t1 = a[i]
+		# check for negative case
+		seq $t3, $t0, 0
+		seq $t4, $v0, 8
+		and $t3, $t3, $t4
+		beq $t3, 1, __is_num_might_neg_case
+	__convert_num_hex_okay__:
+		jal __convert_num_hex_convert__
+	__convert_num_hex_sum__:
+		mul $t2, $t2, 16
+		add $t2, $t2, $t1
+	__convert_num_hex_end_iter__:
+		addi $t0, $t0, 1
+		j __convert_num_hex_loop__
+	__convert_num_hex_end_loop__:
+		move $v0,$t2
+		# first_num * 10^7 - rest
+		j __convert_num_hex_end__
+	__is_num_might_neg_case:
+		# 48-57
+		sgt $t3, $t1, 47
+		slti $t4, $t1, 58
+		and $t3, $t3, $t4
+		beq $t3, 1, __convert_num_hex_okay__
+		jal __convert_num_hex_convert__
+		addi $t2, $t1, 0 # first num -> v1
+		li $t1, 8
+		sub $t2, $t2, 8
+		sub $t2, $t1, $t2
+		# t2 = -(2^3 - rest)
+		mul $t2, $t2, -1
+		j __convert_num_hex_end_iter__
+	__convert_num_hex_convert__:
+		 #65-70
+		 #97-102
+	 	beq $t1, 65, __convert_num_hex_10_case__
+		beq $t1, 66, __convert_num_hex_11_case__
+		beq $t1, 67, __convert_num_hex_12_case__
+		beq $t1, 68, __convert_num_hex_13_case__
+		beq $t1, 69, __convert_num_hex_14_case__
+	 	beq $t1, 70, __convert_num_hex_15_case__
 
-	 beq $t1, 97, __convert_num_hex_10_case__
-	 beq $t1, 98, __convert_num_hex_11_case__
-	 beq $t1, 99, __convert_num_hex_12_case__
-	 beq $t1, 100, __convert_num_hex_13_case__
-	 beq $t1, 101, __convert_num_hex_14_case__
-	 beq $t1, 102, __convert_num_hex_15_case__
+	 	beq $t1, 97, __convert_num_hex_10_case__
+		beq $t1, 98, __convert_num_hex_11_case__
+		beq $t1, 99, __convert_num_hex_12_case__
+		beq $t1, 100, __convert_num_hex_13_case__
+		beq $t1, 101, __convert_num_hex_14_case__
+		beq $t1, 102, __convert_num_hex_15_case__
 	 
-	 sub $t1, $t1, 48
-	 jr $ra
-__convert_num_hex_10_case__:
-	li $t1, 10
-	jr $ra
-__convert_num_hex_11_case__:
-	li $t1, 11
-	jr $ra
-__convert_num_hex_12_case__:
-	li $t1, 12
-	jr $ra
-__convert_num_hex_13_case__:
-	li $t1, 13
-	jr $ra
-__convert_num_hex_14_case__:
-	li $t1, 14
-	jr $ra
-__convert_num_hex_15_case__:
-	li $t1, 15
-	jr $ra
-__convert_num_hex_end__:
-	pop_reg($ra)
-	pop_reg($v1) 	# first_num (if len = 8)
-	pop_reg($t4)   # immediate
-	pop_reg($t3)	# condition
-	pop_reg($t2)	# sum
-	pop_reg($a1)	# address current char
-	pop_reg($a0)	# address origin
-	pop_reg($t1)	# char value	
-	pop_reg($t0) 	# i
+		sub $t1, $t1, 48
+	 	jr $ra
+	__convert_num_hex_10_case__:
+		li $t1, 10
+		jr $ra
+	__convert_num_hex_11_case__:
+		li $t1, 11
+		jr $ra
+	__convert_num_hex_12_case__:
+		li $t1, 12
+		jr $ra
+	__convert_num_hex_13_case__:
+		li $t1, 13
+		jr $ra
+	__convert_num_hex_14_case__:
+		li $t1, 14
+		jr $ra
+	__convert_num_hex_15_case__:
+		li $t1, 15
+		jr $ra
+	__convert_num_hex_end__:
+		pop_reg($ra)
+		pop_reg($v1) 	# first_num (if len = 8)
+		pop_reg($t4)   # immediate
+		pop_reg($t3)	# condition
+		pop_reg($t2)	# sum
+		pop_reg($a1)	# address current char
+		pop_reg($a0)	# address origin
+		pop_reg($t1)	# char value	
+		pop_reg($t0) 	# i
 .end_macro
 
 #Subprogram:		get_string_reg_length
@@ -381,7 +384,6 @@ __convert_num_hex_end__:
 		j check_char	
 	end_of_str:
 	end_of_get_length:
-		addi $v0, $v0, 0					#correct length to $v0
 		pop_reg($t2)
 		pop_reg($t1)
 		pop_reg($a0)
@@ -390,9 +392,8 @@ __convert_num_hex_end__:
 #Subprogram:		is_hexa
 #Purpose:		check if a string stored in a register is a valid hexadecimal or not
 #Input:			%register_string
-#Output:			$v1 = 0 if invalid
-#					  1 if valid
-#				$v0 = hexa part
+#Output:			$v1 = 0 , $v0 = 0 if invalid
+#					  1 , $v0 = num(decimal) if valid 
 
 .macro is_hexa(%register_string)
 .data
@@ -460,14 +461,18 @@ __convert_num_hex_end__:
 		beq $t0, 10, check_first_char
 		j loop						# else continue check char
 	check_first_char:
+		sge $t2, $t1, 56
+		sle $t3, $t1, 57
+		and $t2, $t2, $t3
+		beq $t2, 1, check_if_zero_exist	# if t1 == 8 or t1 == 9, check zero
 		sge $t2, $t1, 65
 		sle $t3, $t1, 70
 		and $t2, $t2, $t3				
-		beq $t2, 1, check_if_zero_exist	# if A < t1 < F, check zero
+		beq $t2, 1, check_if_zero_exist	# if A <= t1 <= F, check zero
 		sge $t2, $t1, 97
 		sle $t3, $t1, 102
 		and $t2, $t2, $t3
-		beq $t2, 1, check_if_zero_exist	# if a < t1 < f, check zero
+		beq $t2, 1, check_if_zero_exist	# if a <= t1 <= f, check zero
 		j loop
 	check_if_zero_exist:
 		beq $t4, 0, loop				# if there is no zero
@@ -494,8 +499,8 @@ __convert_num_hex_end__:
 #Subprogram:		is_num
 #Purpose:		check if a string stored in a register is a valid integer or not
 #Input:			%register_string
-#Output:			$v0 = 0 if invalid
-#					  1 if valid
+#Output:			$v1 = 0, $v0 = 0 if invalid
+#					  1, $v0 = num(decimal) if valid
 
 .macro is_num(%register_string)
 	push_reg($t0) 	# i
@@ -506,9 +511,8 @@ __convert_num_hex_end__:
 	push_reg($t3)	# condition
 
 	# a0 = %register_string
-	push_reg(%register_string)
-	pop_reg($a0)
-	get_string_reg_length(%register_string) # ---> v0
+	move $a0, %register_string
+	get_string_reg_length($a0)			 # ---> v0
 	li $t0, 0							# t0 = i = 0
 	li $t2, 0
 	is_num_loop:
@@ -526,28 +530,30 @@ __convert_num_hex_end__:
 		sub $t1, $t1, 48				
 		# ----> char -> num
 	is_num_action:
-		mul $t2, $t2, 10
-		add $t2, $t2, $t1
+		mul $t2, $t2, 10				# multiply by 10
+		add $t2, $t2, $t1				# then plus with the old value
 		j is_num_end_iter
 	first_iter:
 		beq $t1, 45, neg_case			# 45 : minus sign
-		slti $t3, $t1, 48
+		# check if digit is in [0, 9]
+		slti $t3, $t1, 48					
 		beq $t3, 1, invalid
 		sgt $t3, $t1, 57
 		beq $t3, 1, invalid
-		sub $t1, $t1, 48
+		sub $t1, $t1, 48				# get value of digit depend on its string form
 		j pos_case
+	# v1 = sign
 	neg_case:
 		li $v1, -1	
 		j is_num_end_iter
 	pos_case:
-		li $v1,1
+		li $v1, 1
 		j is_num_action
 	is_num_end_iter:
-		addi $t0, $t0, 1
+		addi $t0, $t0, 1				# i++
 		j is_num_loop
 	is_num_end_loop:
-		mul $v0, $t2, $v1
+		mul $v0, $t2, $v1				# multiply with sign
 		li $v1, 1
 		j is_num_end
 	invalid:
@@ -646,7 +652,6 @@ __convert_num_hex_end__:
 	found_pos:
 		move $v0, $t1
 	end_of_find_pos:
-		addi $v0, $v0, 0
 		pop_reg($a0)
 		pop_reg($t3)
 		pop_reg($t2)
@@ -655,7 +660,7 @@ __convert_num_hex_end__:
 .end_macro
 
 #Subprogram:		split_by_literal_separator
-#Purpose:		split a given string into 2 substrings, using separator character
+#Purpose:		split a given string into 2 substrings, using separator character, remove redundant spaces if possible
 #Input:			%string_reg - register contains string
 #				%char - separator character
 #Output:			$a2 - contains the first string split by this function
@@ -691,6 +696,8 @@ __convert_num_hex_end__:
 		la $a2, substring				# load first half split string to a2
 		addi $t2, $t2, 1				# get the next position
 	 	add $a3, $a0, $t2				# load second half split string to a3
+	 	trim_space_reg($a2)
+	 	trim_space_reg($a3)
 	 	j done 
 	 return:							# string cannot be split 
 	 	move $a2, $a0				# keep a2 = origin string
@@ -783,19 +790,19 @@ __convert_num_hex_end__:
 		addi $t4, $t4, 1								# i++
 		j last_non_space_pos	
 	found_last_non_space_pos:
-		la $t4, result									
+		la $t4, result									# load result var and start appending process
 		addi $t3, $t3, 1
 	# append from first_non_space_pos to last_non_space_pos to result
 	append:
 		add $t0, $t1, $t2
-		lb $t0, ($t0)
-		beq $t2, $t3, end_of_append
-		sb $t0, ($t4)
-		addi $t2, $t2, 1
-		addi $t4, $t4, 1
+		lb $t0, ($t0)									# t0 = str[i]
+		beq $t2, $t3, end_of_append						# if t0 = last_non_space_pos +1 -> finish appending
+		sb $t0, ($t4)									# result[j] = t0
+		addi $t2, $t2, 1								# i++
+		addi $t4, $t4, 1								# j++
 		j append
 	end_of_append:	
-		sb $zero, ($t4)
+		sb $zero, ($t4)									# append \0 to result
 	  	la %reg, result									# save result to the argument register
 	 done:
 	   	pop_reg($t4)
