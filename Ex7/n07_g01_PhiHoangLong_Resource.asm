@@ -9,7 +9,7 @@
 	# cee		condition flag, even float register, even float register
 	# es16_i		even float register, signed_16_bit_integer(int register)
 	# ...
-	# Abbreviation argument list:
+	# Abbreviation operand list:
 	# c			condition flag (0-7)
 	# e			even float register ($f0, $f2, ..., $f30)
 	# f			float register ($f0, $f1, ..., $f31)

@@ -237,7 +237,6 @@ done:
 	beqz $v0, found						# if a2 = t3 -> found, else
 	# split string into multiple components and linear search
 	loop:
-		trim_space_reg($a3)				# remove space before and after string
 		split_by_literal_separator($a3, ' ')		# split string -> first half : a2, second half : a3
 		lb $t0, ($a2)				
 		beq $t0, 0, not_found				# if t0 = null (end of string), not found
