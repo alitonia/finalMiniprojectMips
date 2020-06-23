@@ -26,25 +26,36 @@
 .eqv COUNTER 0xFFFF0013
 
 
+
+
 .data
-	msg_counter: .asciiz "Time inteval!\n"
-	msg_keyboard: .asciiz "This is keyboard speaking\n"
+	input_string: .asciiz "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+	target_string: .asciiz "bo mon ky thuat may tinh"
+	message:  .asciiz "Number of keyboard pressed: "
 	new_line: .asciiz "\n"
 
-	input_string: .asciiz "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-	target_string: .asciiz "bo mon ky thuat may tinh"
-
+	# length of target_string
 	length: .word 24
-	max_input_length: .word 52
-	
+
 	#number of new correct characters typed since last counter interrupt
 	count_num: .word 0
-	message:  .asciiz "Number of keyboard pressed: "
 
 	display_num: .word 0
 	last_display: .word -1
 
 	current_index: .word 0
+	
+
+# experimental
+	print_interval_count:	 .word	0
+
+	# delay between print count_num: 30 * print_interval
+	print_interval: 			.word	 25
+
+
+	
+
+	
 
 
 
@@ -62,6 +73,7 @@ main:
 
 	sw $zero, current_index
 
+	# in case target_string changed
 	la $a0,target_string
 	get_length_reg($a0)
 	sw $v0, length
@@ -95,6 +107,11 @@ main:
 WaitForKey:
 	lw $t1, 0($k1)
 	# $t1 = [$k1] = KEY_READY
+	nop
+	nop
+	nop
+	nop
+
 	beq $t1, $zero, WaitForKey # if $t1 == 0 then Polling
 
 MakeIntR:
@@ -186,7 +203,11 @@ Counter_Intr:
 magical_displayer:
 
 	# check if display value have changed?
-	# count ++
+
+	# print_interval_count ++
+	lw $t0, print_interval_count
+	addi $t0, $t0, 1
+	sw $t0, print_interval_count
 	
 	lw $t0, display_num
 	lw $t1, last_display
@@ -223,7 +244,12 @@ end_counter_interrupt:
 	push_reg($t1)
 	push_reg($t2)
 	
-	
+	lw $t1, print_interval_count
+	lw $t2, print_interval
+
+	slt $t1, $t1, $t2
+	beq $t1, 1, no_print
+
 	li $v0, 4
 	la $a0, message
 	syscall
@@ -238,11 +264,15 @@ end_counter_interrupt:
 
 
 	sw $zero, count_num
-	
+	sw $zero, print_interval_count
+
+no_print:	
+
 	pop_reg($t2)
 	pop_reg($t1)
 	pop_reg($a0)
 	pop_reg($v0)
+
 	j end_process
 
 
@@ -346,15 +376,6 @@ ReadKey:
 
 	lw $t0, 0($k0) # $t0 = [$k0] = KEY_CODE
 
-	# print key
-	li $v0, 1
-	# Processing Counter Interrupt
-	move $a0, $t0
-	syscall
-
-	li $v0,4
-	la $a0,new_line
-	syscall
 
 WaitForDis: 
 	lw $t2, 0($s1)
@@ -393,8 +414,11 @@ refresh_string_loop:
 	add $a2, $a1, $t1
 	lb $t9, 0($a2)
 	beq $t9, $zero, end_refresh_loop
+
 	sb $zero, 0($a2)
 	addi $t1, $t1, 1
+
+	sw $zero, print_interval_count
 	j refresh_string_loop
 end_refresh_loop:
 	j finish
