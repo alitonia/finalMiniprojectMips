@@ -37,11 +37,9 @@
 	length: .word 24
 	max_input_length: .word 52
 	
+	#number of new correct characters typed since last counter interrupt
 	count_num: .word 0
 	message:  .asciiz "Number of keyboard pressed: "
-	
-	print_interval_count:	 .word	0
-	print_interval: 			.word	 10
 
 	display_num: .word 0
 	last_display: .word -1
@@ -128,7 +126,7 @@ end_main:
 
 
 
-# Interupt handler
+# interrupt handler
 .ktext 0x80000180
 
 
@@ -181,7 +179,7 @@ others:
 
 
 
-	# Handle counter Interupt
+	# Handle counter interrupt
 Counter_Intr: 
 	# Processing Counter Interrupt
 
@@ -189,13 +187,10 @@ magical_displayer:
 
 	# check if display value have changed?
 	# count ++
-	lw $t0, print_interval_count
-	addi $t0, $t0, 1
-	sw $t0, print_interval_count
 	
 	lw $t0, display_num
 	lw $t1, last_display
-	beq $t0, $t1, end_counter_interupt
+	beq $t0, $t1, end_counter_interrupt
 	sw $t0, last_display
 
 
@@ -221,7 +216,7 @@ display_right:
 	nop
 	nop
 
-end_counter_interupt:
+end_counter_interrupt:
 	nop
 	push_reg($v0)
 	push_reg($a0)
@@ -343,7 +338,7 @@ decoder:
 
 
 
-# Handle keyboard Interupt
+# Handle keyboard interrupt
 
 Keyboard_Intr:
 

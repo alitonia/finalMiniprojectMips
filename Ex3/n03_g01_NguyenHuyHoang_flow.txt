@@ -7,29 +7,31 @@ Program usage:
 
 	- When user presses Enter, the input sequence is refreshed.
 
+	- Every counter interrupt, print out the number of new correct characters typed since last interval.
+
 
 
 
 Program flows
 Main:
 
-	- Main loop through indefinitely, waiting for interupt
+	- Main loop through indefinitely, waiting for interrupt
 	ex: 
 	while true:
 		thread.sleep(200)
 
-	- Two types of interupts might occur:
-		+ Counter interupt: run main for 30 clock cycles
-		+ Keyboard interupt: when user press 1 key
+	- Two types of interrupts might occur:
+		+ Counter interrupt: run main for 30 clock cycles
+		+ Keyboard interrupt: when user press 1 key
 
-	- When interupt happens, jump to ktext section(customized interupt handler)
+	- When interrupt happens, jump to ktext section(customized interrupt handler)
 
 
 
-Interupt handler:
+interrupt handler:
 
-	- Check for interupt cause in $13 with different mask,
-	if satisfy, jump to that interupt handler. If none satisfy, resume program
+	- Check for interrupt cause in $13 with different mask,
+	if satisfy, jump to that interrupt handler. If none satisfy, resume program
 
 	ex:
 		counter_mask = 0b_0101
@@ -43,7 +45,8 @@ Interupt handler:
 
 
 
-	- Counter interupt handler:
+	- Counter interrupt handler:
+		+ Print count_num, reset count_num to 0
 		+ Check if display value = last display value ( avoid flickering)
 		+ If true:
 			* Translate value to 7-led code for display
@@ -70,7 +73,7 @@ Interupt handler:
 
 
 
-	- Keyboard interupt handler:
+	- Keyboard interrupt handler:
 		+ Get value of key pressed
 		+ If value = '\n' ---> reset procedure,
 			else ----> add procedure
@@ -89,6 +92,7 @@ Interupt handler:
 			* Else ----> add new character to tracking_string,
 				check input value against value of target_string,
 				update display_value to number of correct characters,
+				increment count_num( number of new correct characters typed)
 
 			ex: 
 				if length(tracking_string) > maximum_length 
