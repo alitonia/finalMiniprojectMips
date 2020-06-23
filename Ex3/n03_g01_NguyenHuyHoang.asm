@@ -36,6 +36,12 @@
 
 	length: .word 24
 	max_input_length: .word 52
+	
+	count_num: .word 0
+	message:  .asciiz "Number of keyboard pressed: "
+	
+	print_interval_count:	 .word	0
+	print_interval: 			.word	 10
 
 	display_num: .word 0
 	last_display: .word -1
@@ -182,6 +188,11 @@ Counter_Intr:
 magical_displayer:
 
 	# check if display value have changed?
+	# count ++
+	lw $t0, print_interval_count
+	addi $t0, $t0, 1
+	sw $t0, print_interval_count
+	
 	lw $t0, display_num
 	lw $t1, last_display
 	beq $t0, $t1, end_counter_interupt
@@ -212,6 +223,31 @@ display_right:
 
 end_counter_interupt:
 	nop
+	push_reg($v0)
+	push_reg($a0)
+	push_reg($t1)
+	push_reg($t2)
+	
+	
+	li $v0, 4
+	la $a0, message
+	syscall
+	
+	li $v0, 1
+	lw $a0, count_num
+	syscall
+	
+	li $v0, 4
+	la $a0, new_line
+	syscall
+
+
+	sw $zero, count_num
+	
+	pop_reg($t2)
+	pop_reg($t1)
+	pop_reg($a0)
+	pop_reg($v0)
 	j end_process
 
 
@@ -374,6 +410,8 @@ end_refresh_loop:
 new_value_handler:
 	# This part compare and 
 	# add display num according to new input
+
+	
 	lw $t8, current_index
 	lw $t1, length
 	slt $t1, $t8, $t1
@@ -397,7 +435,15 @@ new_value_handler:
 	lw $t0, display_num
 	add $t0, $t0, $t1
 	sw $t0, display_num
-		
+	
+	
+	beq $t1, 0, no_speed
+	
+	lw $t8, count_num
+	addi $t8, $t8, 1
+	sw $t8, count_num
+	
+no_speed:	
 
 out_of_bound:
 	

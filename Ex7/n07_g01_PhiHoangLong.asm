@@ -9,13 +9,17 @@
 .text
 
 main:
+	# prompt user to enter input
 	li $v0, 54
 	la $a0, promptInput
 	la $a1, inputString
 	la $a2, 256
 	syscall
 	
+	# if input is empty -> alert -> back to main
 	bnez $a1, emptyInput
+	
+	# else
 	la $a0, inputString
 	trim_space_reg($a0)
 	split_by_literal_separator($a0, ' ')  					# get opcode -> a2

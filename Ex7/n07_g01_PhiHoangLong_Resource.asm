@@ -9,7 +9,7 @@
 	# cee		condition flag, even float register, even float register
 	# es16_i		even float register, signed_16_bit_integer(int register)
 	# ...
-	# Abbreviation argument list:
+	# Abbreviation operand list:
 	# c			condition flag (0-7)
 	# e			even float register ($f0, $f2, ..., $f30)
 	# f			float register ($f0, $f1, ..., $f31)
@@ -79,6 +79,7 @@
 	undefined_cycle:		.asciiz "syscall"
 	
 #Return $v0 = 1 if valid, 0 if invalid
+# $f2, $f4
 .macro valid_ee(%string_of_operands)
 	push_reg($t0)
 	push_reg($t2)
