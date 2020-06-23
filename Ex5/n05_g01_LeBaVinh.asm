@@ -263,7 +263,7 @@ checkOperatorStack:
 		lw $a0, 0($s2)			# Load operator stack
 		beqz $a0, errorInput		# Check operator stack is empty or not
 		lbu $t6, 0($t9)			# Load top operator stack
-		addi $t6, $t6, -100		# Encode operator
+		addi $t6, $t6, -100		# Decode operator
 		beq $t6, '(', endLoop1		# Check if top operator stack is '(' or not
 		sb $zero, 0($t9)		# If not, pop operator stack
 		move $s3, $t6			

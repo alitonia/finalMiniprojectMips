@@ -79,6 +79,7 @@
 	undefined_cycle:		.asciiz "syscall"
 	
 #Return $v0 = 1 if valid, 0 if invalid
+# $f2, $f4
 .macro valid_ee(%string_of_operands)
 	push_reg($t0)
 	push_reg($t2)
